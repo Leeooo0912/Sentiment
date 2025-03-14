@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from models.logistic_regression import SentimentLogisticRegression
+from models.transformer_sentiment import SentimentTransformerModel
 
 def load_and_split_data(data_path='data.csv', test_size=0.2):
     """Load and split data into train and test sets"""
@@ -11,7 +12,9 @@ def load_and_split_data(data_path='data.csv', test_size=0.2):
 
 def train_and_evaluate_model(model_name, X_train, X_test, y_train, y_test):
     """Train and evaluate a specified model"""
-    if model_name.lower() == 'logistic':
+    if model_name.lower() == 'transformer':
+        model = SentimentTransformerModel(epochs=3)  # Adjust epochs as needed
+    elif model_name.lower() == 'logistic':
         model = SentimentLogisticRegression()
     else:
         raise ValueError(f"Model {model_name} not implemented")
@@ -49,7 +52,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_and_split_data(data_path='data/airlines_data.csv')
     
     # Train and evaluate models
-    models_to_train = ['logistic']  # Add more models here as they're implemented
+    models_to_train = ['logistic', 'transformer']  # Add other models as needed
     
     for model_name in models_to_train:
         model = train_and_evaluate_model(model_name, X_train, X_test, y_train, y_test)
