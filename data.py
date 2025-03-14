@@ -1,50 +1,62 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+import os
+from pathlib import Path
 
-# Read the CSV file
-df = pd.read_csv('heart.csv')
+def load_data(data_dir='data'):
+    """
+    Load and process data files from the data directory
+    
+    Args:
+        data_dir (str): Path to data directory, defaults to 'data'
+        
+    Returns:
+        pandas.DataFrame: Combined and shuffled dataset with 'text' and 'score' columns
+    """
+    # Create Path object
+    data_path = Path(data_dir)
+    
+    # Check if directory exists
+    if not data_path.exists():
+        raise FileNotFoundError(f"Directory '{data_dir}' not found")
+    
+    # Initialize list to store all data
+    all_data = []
+    
+    # Process each text file
+    for file in data_path.glob('*_labelled.txt'):
+        try:
+            # Read file content
+            df = pd.read_csv(file, sep='\t', header=None, names=['text', 'score'])
+            print(f"Successfully processed {file.name}")
+            all_data.append(df)
+            
+        except Exception as e:
+            print(f"Error processing {file.name}: {str(e)}")
+    
+    # Combine all dataframes
+    if not all_data:
+        raise ValueError("No valid data files found")
+        
+    combined_df = pd.concat(all_data, ignore_index=True)
+    
+    # Shuffle the combined dataset
+    shuffled_df = combined_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    return shuffled_df
 
-# Display basic information about the dataset
-print("Dataset Info:")
-print(df.info())
-
-# Display the first few rows
-print("\nFirst few rows:")
-print(df.head())
-
-# Get basic statistics of numerical columns
-print("\nBasic statistics:")
-print(df.describe())
-
-# Check for missing values
-print("\nMissing values:")
-print(df.isnull().sum())
-
-# Display unique values in categorical columns
-categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
-print("\nUnique values in categorical columns:")
-for col in categorical_cols:
-    print(f"\n{col}:", df[col].unique())
-
-# Separate features (X) and target variable (y)
-X = df.drop('HeartDisease', axis=1)  # Assuming 'HeartDisease' is your target column
-y = df['HeartDisease']
-
-# Encode categorical variables
-categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
-le = LabelEncoder()
-for col in categorical_cols:
-    X[col] = le.fit_transform(X[col])
-
-# Split the data into training and testing sets
-from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-print("\nData split shapes:")
-print(f"X_train shape: {X_train.shape}")
-print(f"X_test shape: {X_test.shape}")
-print(f"y_train shape: {y_train.shape}")
-print(f"y_test shape: {y_test.shape}")
+if __name__ == "__main__":
+    # Process data
+    processed_data = load_data()
+    
+    # Save to CSV file
+    output_file = 'data.csv'
+    processed_data.to_csv(output_file, index=False)
+    print(f"\nData saved to {output_file}")
+    
+    # Print summary of processed data
+    print("\nData Processing Summary:")
+    print(f"Total samples: {len(processed_data)}")
+    print(f"Positive samples: {sum(processed_data['score'] == 1)}")
+    print(f"Negative samples: {sum(processed_data['score'] == 0)}")
+    print("\nFirst few samples:")
+    print(processed_data.head())
