@@ -46,7 +46,7 @@ def test_predictions(model):
 if __name__ == "__main__":
     # Load and split data
     print("Loading and splitting data...")
-    X_train, X_test, y_train, y_test = load_and_split_data()
+    X_train, X_test, y_train, y_test = load_and_split_data(data_path='data/airlines_data.csv')
     
     # Train and evaluate models
     models_to_train = ['logistic']  # Add more models here as they're implemented
